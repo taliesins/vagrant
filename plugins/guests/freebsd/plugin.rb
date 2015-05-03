@@ -36,6 +36,11 @@ module VagrantPlugins
         Cap::MountNFSFolder
       end
 
+      guest_capability("freebsd", "mount_smb_shared_folder") do
+        require_relative "cap/mount_smb_shared_folder"
+        Cap::MountSMBSharedFolder
+      end
+
       guest_capability("freebsd", "remove_public_key") do
         require_relative "cap/remove_public_key"
         Cap::RemovePublicKey
