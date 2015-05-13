@@ -16,6 +16,11 @@ module VagrantPlugins
         Cap::ChangeHostName
       end
 
+      guest_capability("freebsd", "choose_addressable_ip_addr") do
+        require_relative "cap/choose_addressable_ip_addr"
+        Cap::ChooseAddressableIPAddr
+      end
+
       guest_capability("freebsd", "configure_networks") do
         require_relative "cap/configure_networks"
         Cap::ConfigureNetworks
