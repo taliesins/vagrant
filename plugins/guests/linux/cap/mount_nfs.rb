@@ -12,30 +12,33 @@ module VagrantPlugins
             expanded_guest_path = machine.guest.capability(
               :shell_expand_guest_path, opts[:guestpath])
 
-            # Do the actual creating and mounting
-            machine.communicate.sudo("mkdir -p #{expanded_guest_path}")
+            if machine.communicate.test("if mount | grep #{expanded_guest_path} > /dev/null; then exit 1; else exit 0; fi")
 
-            # Mount
-            hostpath = opts[:hostpath].dup
-            hostpath.gsub!("'", "'\\\\''")
+              # Do the actual creating and mounting
+              machine.communicate.sudo("mkdir -p #{expanded_guest_path}")
 
-            # Figure out any options
-            mount_opts = ["vers=#{opts[:nfs_version]}"]
-            mount_opts << "udp" if opts[:nfs_udp]
-            if opts[:mount_options]
-              mount_opts = opts[:mount_options].dup
-            end
+              # Mount
+              hostpath = opts[:hostpath].dup
+              hostpath.gsub!("'", "'\\\\''")
 
-            mount_command = "mount -o '#{mount_opts.join(",")}' #{ip}:'#{hostpath}' #{expanded_guest_path}"
-            retryable(on: Vagrant::Errors::LinuxNFSMountFailed, tries: 8, sleep: 3) do
-              machine.communicate.sudo(mount_command,
-                                       error_class: Vagrant::Errors::LinuxNFSMountFailed)
-            end
+              # Figure out any options
+              mount_opts = ["vers=#{opts[:nfs_version]}"]
+              mount_opts << "udp" if opts[:nfs_udp]
+              if opts[:mount_options]
+                mount_opts = opts[:mount_options].dup
+              end
 
-            # Emit an upstart event if we can
-            if machine.communicate.test("test -x /sbin/initctl")
-              machine.communicate.sudo(
-                "/sbin/initctl emit --no-wait vagrant-mounted MOUNTPOINT=#{expanded_guest_path}")
+              mount_command = "mount -o '#{mount_opts.join(",")}' #{ip}:'#{hostpath}' #{expanded_guest_path}"
+              retryable(on: Vagrant::Errors::LinuxNFSMountFailed, tries: 8, sleep: 3) do
+                machine.communicate.sudo(mount_command,
+                                         error_class: Vagrant::Errors::LinuxNFSMountFailed)
+              end
+
+              # Emit an upstart event if we can
+              if machine.communicate.test("test -x /sbin/initctl")
+                machine.communicate.sudo(
+                  "/sbin/initctl emit --no-wait vagrant-mounted MOUNTPOINT=#{expanded_guest_path}")
+              end
             end
           end
         end
