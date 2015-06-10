@@ -122,7 +122,13 @@ module VagrantPlugins
 
           remote_file = File.join(config.provisioning_path, filename)
           @machine.communicate.tap do |comm|
-            comm.sudo("rm -f #{remote_file}", error_check: false)
+            if windows?
+              command = "if (test-path '#{remote_file}') {rm '#{remote_file}' -force -recurse}"
+            else
+              command = "rm -f #{remote_file}"
+            end
+
+            comm.sudo(command, error_check: false)
             comm.upload(temp.path, remote_file)
           end
         end

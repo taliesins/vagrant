@@ -34,7 +34,8 @@ module VagrantPlugins
           @data_bags_folders = expanded_folders(@config.data_bags_path, "data_bags")
           @environments_folders = expanded_folders(@config.environments_path, "environments")
 
-          existing = synced_folders(@machine, cached: true)
+          existing = synced_folders(@machine, cached: false)
+
           share_folders(root_config, "csc", @cookbook_folders, existing)
           share_folders(root_config, "csr", @role_folders, existing)
           share_folders(root_config, "csdb", @data_bags_folders, existing)
@@ -134,12 +135,13 @@ module VagrantPlugins
             opts[:id] = "v-#{prefix}-#{self.class.get_and_update_counter(:shared_folder)}"
             opts[:type] = @config.synced_folder_type if @config.synced_folder_type
 
+
             root_config.vm.synced_folder(local_path, remote_path, opts)
           end
 
           @shared_folders += folders
         end
-
+      
         def setup_solo_config
           setup_config("provisioners/chef_solo/solo", "solo.rb", solo_config)
         end
@@ -194,8 +196,15 @@ module VagrantPlugins
         def verify_shared_folders(folders)
           folders.each do |folder|
             @logger.debug("Checking for shared folder: #{folder}")
-            if !@machine.communicate.test("test -d #{folder}", sudo: true)
-              raise ChefError, :missing_shared_folders
+
+            if windows?
+              if !@machine.communicate.test("test-path -d #{folder}", sudo: true)
+                  raise ChefError, :missing_shared_folders
+              end
+            else 
+              if !@machine.communicate.test("test -d #{folder}", sudo: true)
+                  raise ChefError, :missing_shared_folders
+              end
             end
           end
         end
