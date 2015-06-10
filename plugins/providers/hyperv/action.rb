@@ -40,6 +40,8 @@ module VagrantPlugins
               b2.use ConfigValidate
               b2.use StopInstance
               b2.use DeleteVM
+              b2.use PrepareNFSValidIds
+              b2.use SyncedFolderCleanup
             end
           end
         end
@@ -78,7 +80,14 @@ module VagrantPlugins
                 next
               end
 
+              b3.use PrepareNFSValidIds
+              b3.use SyncedFolderCleanup
+              b3.use PrepareNFSSettings
+
+              # Provision will create shared folders if necessary
               b3.use Provision
+
+              b3.use SyncedFolders
             end
           end
         end
@@ -115,15 +124,34 @@ module VagrantPlugins
                 next
               end
 
-              b2.use Provision
               b2.use Network
               b2.use StartInstance
               b2.use WaitForIPAddress
               b2.use WaitForCommunicator, [:running]
-              b2.use SyncedFolders
               b2.use SetHostname
+              
+              b2.use PrepareNFSValidIds
+              b2.use SyncedFolderCleanup
+              b2.use PrepareNFSSettings
+
+              # Provision will create shared folders if necessary
+              b2.use Provision
+
+              b2.use SyncedFolders
             end
           end
+        end
+      end
+
+      # This is the action that is called to sync folders to a running
+      # machine without a reboot.
+      def self.action_sync_folders
+        Vagrant::Action::Builder.new.tap do |b|
+          b.use PrepareNFSValidIds
+          b.use SyncedFolderCleanup
+
+          b.use PrepareNFSSettings
+          b.use SyncedFolders
         end
       end
 
@@ -215,6 +243,8 @@ module VagrantPlugins
       autoload :ReadState, action_root.join("read_state")
       autoload :ResumeVM, action_root.join("resume_vm")
       autoload :StartInstance, action_root.join('start_instance')
+      autoload :PrepareNFSValidIds, action_root.join("prepare_nfs_valid_ids")
+      autoload :PrepareNFSSettings, action_root.join("prepare_nfs_settings")
       autoload :StopInstance, action_root.join('stop_instance')
       autoload :SuspendVM, action_root.join("suspend_vm")
       autoload :WaitForIPAddress, action_root.join("wait_for_ip_address")

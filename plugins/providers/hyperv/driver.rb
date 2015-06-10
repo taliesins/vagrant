@@ -85,6 +85,16 @@ module VagrantPlugins
         execute("enable_adapters.ps1", nics)
       end
 
+      def load_host_ips
+        result = execute('host_info.ps1', {})
+        result["ip_addresses"]
+      end
+
+      def read_vms
+        result = execute('read_vms.ps1', {})
+        result
+      end
+
       def read_network_interfaces
         nics = {}
         info = execute('get_network_interfaces.ps1', { VmId: vm_id })
