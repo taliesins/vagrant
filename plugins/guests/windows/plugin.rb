@@ -49,6 +49,16 @@ module VagrantPlugins
         Cap::MountSharedFolder
       end
 
+      guest_capability(:windows, "nfs_client_installed") do
+        require_relative "cap/nfs_client"
+        Cap::NFSClient
+      end
+
+      guest_capability(:windows, "mount_nfs_folder") do
+        require_relative "cap/mount_nfs"
+        Cap::MountNFS
+      end
+
       guest_capability(:windows, :wait_for_reboot) do
         require_relative "cap/reboot"
         Cap::Reboot
@@ -67,6 +77,11 @@ module VagrantPlugins
       guest_capability(:windows, :rsync_pre) do
         require_relative "cap/rsync"
         Cap::RSync
+      end
+
+      guest_capability(:windows, "shell_expand_guest_path") do
+        require_relative "cap/shell_expand_guest_path"
+        Cap::ShellExpandGuestPath
       end
 
       protected
