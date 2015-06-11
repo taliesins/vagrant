@@ -3,7 +3,6 @@ Param(
     [string]$vm_xml_config,
     [Parameter(Mandatory=$true)]
     [string]$image_path,
-    [string]$generation='1',
     [string]$memory=$null,
     [string]$maxmemory=$null,   
     [string]$cpus=$null,
@@ -132,18 +131,19 @@ $vm | Set-VM @more_vm_params -Passthru
 # Add drives to the virtual machine
 $controllers = Select-Xml -xml $vmconfig -xpath "//*[starts-with(name(.),'controller')]"
 
-# Only set EFI secure boot for Gen 2 machines, not gen 1
-if ($generation -ne 1) {
-	# Set EFI secure boot 
-	if ($secure_boot_enabled -eq "True") {
-		Set-VMFirmware -VM $vm -EnableSecureBoot On
-	}  else {
-		Set-VMFirmware -VM $vm -EnableSecureBoot Off
-	}
-}
+
 
 # A regular expression pattern to pull the number from controllers
 [regex]$rx="\d"
+
+if ($generation -ne 1) {
+    # Set EFI secure boot 
+    if ($secure_boot_enabled -eq "True") {
+        Set-VMFirmware -VM $vm -EnableSecureBoot On
+    }  else {
+        Set-VMFirmware -VM $vm -EnableSecureBoot Off
+    }
+}
 
 foreach ($controller in $controllers) {
     $node = $controller.Node
@@ -177,14 +177,16 @@ foreach ($controller in $controllers) {
     }
 }
 
-if ($generation -ne '1') {
-    $SecureBoot = (Select-Xml -xml $vmconfig -XPath "//secure_boot_enabled").Node.'#text' -eq 'True'
-    if (!$SecureBoot) {
-        Set-VMFirmware -Vmname $vm_name -EnableSecureBoot Off
-    }
-
+# Only set EFI secure boot for Gen 2 machines, not gen 1
+if ($generation -ne 1) {
     $firstBootDevice = Get-VMFirmware -Vmname $vm_name |%{$_.BootOrder.Device}| ?{$_ -is [Microsoft.HyperV.PowerShell.HardDiskDrive]} | Select-Object -First 1
-    Set-VMFirmware -Vmname $vm_name -EnableSecureBoot Off -FirstBootDevice $firstBootDevice
+ 
+    # Set EFI secure boot 
+    if ($secure_boot_enabled -eq "True") {
+        Set-VMFirmware -VM $vm -FirstBootDevice $firstBootDevice
+    }  else {
+        Set-VMFirmware -VM $vm -FirstBootDevice $firstBootDevice
+    }
 }
 
 $vm_id = (Get-VM $vm_name).id.guid

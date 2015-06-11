@@ -13,7 +13,6 @@ module VagrantPlugins
       # @return [Hash]
       attr_reader :network_adapters
 
-      attr_accessor :generation
       attr_accessor :memory
       attr_accessor :maxmemory
       attr_accessor :cpus
@@ -22,7 +21,6 @@ module VagrantPlugins
       def initialize
         @ip_address_timeout = UNSET_VALUE
         @network_adapters = {}
-        @generation = "1"
         @memory = UNSET_VALUE
         @maxmemory = UNSET_VALUE
         @cpus = UNSET_VALUE

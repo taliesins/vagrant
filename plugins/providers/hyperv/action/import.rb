@@ -57,14 +57,12 @@ module VagrantPlugins
           dest_path   = env[:machine].data_dir.join("disk#{image_ext}").to_s
           FileUtils.cp(source_path, dest_path)
           image_path = dest_path
-          generation = env[:machine].provider_config.generation.to_s
 
           # We have to normalize the paths to be Windows paths since
           # we're executing PowerShell.
           options = {
             vm_xml_config:  config_path.to_s.gsub("/", "\\"),
-            image_path:      image_path.to_s.gsub("/", "\\"),
-            generation: generation
+            image_path:      image_path.to_s.gsub("/", "\\")
           }
           
           options[:memory] = memory if memory 

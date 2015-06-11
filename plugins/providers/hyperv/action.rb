@@ -124,6 +124,9 @@ module VagrantPlugins
                 next
               end
 
+              # Provision will create shared folders if necessary
+              b2.use Provision
+
               b2.use Network
               b2.use StartInstance
               b2.use WaitForIPAddress
@@ -133,9 +136,6 @@ module VagrantPlugins
               b2.use PrepareNFSValidIds
               b2.use SyncedFolderCleanup
               b2.use PrepareNFSSettings
-
-              # Provision will create shared folders if necessary
-              b2.use Provision
 
               b2.use SyncedFolders
             end
