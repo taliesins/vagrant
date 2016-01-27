@@ -102,15 +102,13 @@ module Vagrant
         # @param [String] path
         # @return [String]
         def cygwin_path(path)
-          if cygwin?
-            begin
-              # First try the real cygpath
-              process = Subprocess.execute("cygpath", "-u", "-a", path.to_s)
-              return process.stdout.chomp
-            rescue Errors::CommandUnavailableWindows
-            end
+          begin
+            # First try the real cygpath
+            process = Subprocess.execute("cygpath", "-u", "-a", path.to_s)
+            return process.stdout.chomp
+          rescue Errors::CommandUnavailableWindows
           end
-
+        
           # Sometimes cygpath isn't available (msys). Instead, do what we
           # can with bash tricks.
           process = Subprocess.execute(
